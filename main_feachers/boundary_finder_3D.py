@@ -1,9 +1,7 @@
 from typing import List, Tuple
-from enum import Enum
 
 from tqdm import tqdm
 
-from typing import TypedDict
 
 class BoundaryFinder3D:
     def __init__(self, grid: List[List[List[int]]]):

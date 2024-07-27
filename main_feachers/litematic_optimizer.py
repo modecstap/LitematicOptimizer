@@ -1,18 +1,19 @@
 from litemapy import Schematic, BlockState, Region
 from tqdm import tqdm
 
+from main_feachers import base_ignored_bloks
 from main_feachers.boundary_finder_3D import BoundaryFinder3D
 
 
 class LitematicOptimizer:
-    def __init__(self, path: str):
+    def __init__(self, file_path: str):
         """
         Инициализация LitematicOptimizer с загрузкой схемы.
 
-        :param path: Путь к файлу схемы.
+        :param file_path: Путь к файлу схемы.
         """
-        self._schematic = Schematic.load(path)
-        self._ignored_blocks = {"minecraft:air"}
+        self._schematic = Schematic.load(file_path)
+        self._ignored_blocks = base_ignored_bloks
         self._regions = {}
 
     def set_ignored_blocks(self, ignored_blocks: set):
@@ -33,7 +34,20 @@ class LitematicOptimizer:
             self._apply_mask_to_region(region, mask)
             self._regions[str(i)] = region
 
-        self._save_optimized_schematic()
+    def save_optimized_schematic(self, file_storage_path: str, schematic_name: str) -> str:
+        """
+        Сохранение оптимизированной схемы в файл.
+
+        :param
+        file_storage_path: путь к хранилищу файлов
+        schematic_name: название под которым создастся файл
+
+        :return: путь до файла
+        """
+        temp_schematic = Schematic(name=f"optimized_{schematic_name}", author="Modecstap", regions=self._regions)
+        temp_schematic.save(f"{file_storage_path}/optimized_{schematic_name}.litematic")
+
+        return f"{file_storage_path}/optimized_{schematic_name}.litematic"
 
     def _create_grid(self, region: Region) -> list:
         """
@@ -88,10 +102,3 @@ class LitematicOptimizer:
                 for z in region.zrange():
                     if mask[x][y][z] == 0 and self._check_block_availability(region, x, y, z):
                         region.setblock(x, y, z, air)
-
-    def _save_optimized_schematic(self):
-        """
-        Сохранение оптимизированной схемы в файл.
-        """
-        temp_schematic = Schematic(name="optimized", author="Modecstap", regions=self._regions)
-        temp_schematic.save("optimized_schematic.litematic")
