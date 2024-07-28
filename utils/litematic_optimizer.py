@@ -1,8 +1,8 @@
 from litemapy import Schematic, BlockState, Region
 from tqdm import tqdm
 
-from main_feachers import base_ignored_bloks
-from main_feachers.boundary_finder_3D import BoundaryFinder3D
+from utils import base_ignored_bloks
+from utils.boundary_finder_3D import BoundaryFinder3D
 
 
 class LitematicOptimizer:
