@@ -7,13 +7,16 @@ from utils.litematic_optimizer import LitematicOptimizer
 
 async def get_optimized_litematic(request: Request):
     try:
-        file_storage_path = ""
-        filename = request.headers.get('Filename', 'default_filename')
-        file_path = f"{file_storage_path}/{filename}.litematic"
+        file_storage_path = "C:/Users/modecstap/Desktop/lt"
+        reader = await request.multipart()
+
+        field = await reader.next()
+        filename = field.filename
+        file_path = f"{file_storage_path}/{filename}"
 
         async with aiofiles.open(file_path, 'wb') as f:
             while True:
-                chunk = await request.content.read(1024)
+                chunk = await field.read_chunk()  # 8192 байт по умолчанию.
                 if not chunk:
                     break
                 await f.write(chunk)
@@ -31,6 +34,7 @@ async def get_optimized_litematic(request: Request):
         )
 
     except Exception as e:
+        print(e)
         return web.Response(
             status=500,
             text="ошибка при обработке файла"

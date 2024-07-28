@@ -1,7 +1,5 @@
 from typing import List, Tuple
 
-from tqdm import tqdm
-
 
 class BoundaryFinder3D:
     def __init__(self, grid: List[List[List[int]]]):
@@ -21,27 +19,19 @@ class BoundaryFinder3D:
         Поиск границ в 3D-сетке.
         """
         self._to_check.append((0, 0, 0))
-        total_blocks = len(self._grid) * len(self._grid[0]) * len(self._grid[0][0])
-        pbar = tqdm(total=total_blocks)
 
         while self._to_check:
-            self._process_points(pbar)
+            self._process_points()
 
-        pbar.close()
-
-    def _process_points(self, pbar: tqdm):
+    def _process_points(self):
         """
         Обработка точек и обновление прогресс-бара.
-
-        :param pbar: Прогресс-бар для отображения прогресса.
         """
 
         points = self._to_check[:]
         self._to_check.clear()
         for point in points:
             self._process_cell(point)
-        pbar.n = len(self._checked)
-        pbar.refresh()
 
     def _process_cell(self, coord: Tuple[int, int, int]):
         """
