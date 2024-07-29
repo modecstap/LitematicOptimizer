@@ -1,10 +1,11 @@
+import logging
 from aiohttp import web
-
 from .handlers import get_optimized_litematic
-
 
 class AiohttpApplication:
     def __init__(self):
+        logger = logging.getLogger(__name__)
+        logger.info("start aiohttp application")
         self.app = web.Application()
         self._setup_routes()
 
