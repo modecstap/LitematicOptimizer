@@ -1,53 +1,57 @@
-import aiofiles
 import logging
+
+import aiofiles
 from aiohttp import web
 from aiohttp.web_request import Request
 
+from app.request_file_writer import RequestFileWriter
+from feachers.DTO import FilePath
+from feachers.custom_exceptions import FileTypeException
 from utils.litematic_optimizer import LitematicOptimizer
-
 
 async def get_optimized_litematic(request: Request):
     logger = logging.getLogger(__name__)
     try:
-        file_storage_path = "C:/Users/modecstap/Desktop/lt"
-        reader = await request.multipart()
+        file_path = await _write_file(request)
 
-        field = await reader.next()
-        filename = field.filename
-        if filename[-9:] != "litematic":
-            return web.Response(
-                status=406,
-                text="проверьте формат файла, он должен быть .litematic"
-            )
+        logger.info(f"Старт оптимизации {file_path.get_filename()}")
 
-        logger.info(f"start {filename}")
-        file_path = f"{file_storage_path}/{filename}"
-
-        optimized_file = await optimize_file(field, file_path, file_storage_path, filename)
+        optimized_file = await _optimize_file(file_path)
 
         return web.Response(
             body=optimized_file,
             content_type='application/octet-stream'
         )
 
+    except FileTypeException as e:
+        logger.exception(f"File type error: {e}")
+        return web.Response(
+            status=406,
+            text="Проверьте формат файла, он должен быть .litematic"
+        )
+
     except Exception as e:
-        logger.exception(f"{e}")
+        logger.exception(f"Processing error: {e}")
         return web.Response(
             status=500,
-            text="ошибка при обработке файла"
+            text="Ошибка при обработке файла"
         )
 
 
-async def optimize_file(field, file_path, file_storage_path, filename):
-    async with aiofiles.open(file_path, 'wb') as f:
-        while True:
-            chunk = await field.read_chunk()  # 8192 байт по умолчанию.
-            if not chunk:
-                break
-            await f.write(chunk)
-    litematic_optimizer = LitematicOptimizer(file_path)
+async def _write_file(request: Request) -> FilePath:
+    request_file_writer = RequestFileWriter(request)
+    await request_file_writer.write()
+    return request_file_writer.file_path
+
+
+async def _optimize_file(file_path: FilePath) -> bytes:
+    litematic_optimizer = LitematicOptimizer(file_path.get_file_path())
     litematic_optimizer.optimize()
-    optimized_file_path = litematic_optimizer.save_optimized_schematic(file_storage_path, filename)
+
+    optimized_file_path = litematic_optimizer.save_optimized_schematic(
+        file_path.get_file_directory(),
+        file_path.get_filename()
+    )
+
     async with aiofiles.open(optimized_file_path, 'rb') as f:
-        optimized_file = await f.read()
-    return optimized_file
+        return await f.read()

@@ -41,7 +41,7 @@ class LitematicOptimizer:
         Сохранение оптимизированной схемы в файл.
 
         :param
-        file_storage_path: путь к хранилищу файлов
+        file_directory: путь к хранилищу файлов
         schematic_name: название под которым создастся файл
 
         :return: путь до файла
